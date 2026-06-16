@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Customer Support Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #48bb78;
+            --warning: #f6ad55;
+            --danger: #f56565;
+            --light-bg: #f5f7fa;
+            --border-color: #e2e8f0;
+            --text-dark: #2d3748;
+            --text-light: #718096;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+            max-height: 800px;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            font-size: 13px;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+        
+        .patterns-badge {
+            display: inline-flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .badge {
+            background: rgba(255,255,255,0.25);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px;
+            background: var(--light-bg);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.user {
+            justify-content: flex-end;
+        }
+        
+        .message.bot {
+            justify-content: flex-start;
+        }
+        
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+        
+        .user .message-bubble {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-radius: 15px 0 15px 15px;
+        }
+        
+        .bot .message-bubble {
+            background: white;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0 15px 15px 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-light);
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.5;
+                transform: translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+        }
+        
+        .info-tag {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 8px;
+            margin-right: 5px;
+        }
+        
+        /* Input Area */
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        input[type="text"]::placeholder {
+            color: var(--text-light);
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .quick-action {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .quick-action:hover {
+            background: var(--light-bg);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                height: 90vh;
+                max-height: none;
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .patterns-badge {
+                gap: 5px;
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Scrollbar styling */
+        .chat-area::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .chat-area::-webkit-scrollbar-track {
+            background: var(--light-bg);
+        }
+        
+        .chat-area::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        
+        .chat-area::-webkit-scrollbar-thumb:hover {
+            background: var(--text-light);
+        }
+        
+        /* Statistics Panel */
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: var(--light-bg);
+            border-radius: 10px;
+            font-size: 12px;
+            display: none;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🤖 Smart Customer Support</h1>
+            <p>Powered by Advanced AI Reasoning</p>
+            <div class="patterns-badge">
+                <div class="badge">🧠 ReAct Pattern</div>
+                <div class="badge">🔗 Chain of Thought</div>
+                <div class="badge">✨ Self-Reflection</div>
+            </div>
+        </div>
+        
+        <!-- Chat Area -->
+        <div class="chat-area" id="chatArea">
+            <div class="message bot">
+                <div class="message-bubble">
+                    👋 Hello! Welcome to our Smart Customer Support Chatbot.<br><br>
+                    I use advanced AI reasoning to help you with:
+                    <div style="margin-top: 10px; margin-left: 10px;">
+                        <div>💭 <strong>Thinking through your problem</strong> step-by-step</div>
+                        <div>⚡ <strong>Providing clear solutions</strong> that work</div>
+                        <div>✅ <strong>Reviewing my responses</strong> for quality</div>
+                    </div>
+                    <br>What can I help you with today? Ask about login, billing, shipping, or technical issues!
+                    <div class="info-tag">Ready to Help!</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Input Area -->
+        <div class="input-area">
+            <input 
+                type="text" 
+                id="userInput" 
+                placeholder="Ask about account, billing, shipping, or technical issues..."
+                onkeypress="handleKeyPress(event)"
+            >
+            <button onclick="sendMessage()" id="sendBtn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatArea = document.getElementById('chatArea');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        
+        const API_BASE_URL = 'http://localhost:5000'; // Change to your server URL
+        
+        // Sample responses for offline mode
+        const offlineSamples = {
+            'login': {
+                query: 'I can\'t log into my account',
+                category: 'login',
+                response: 'Hi there! 👋 Thank you for reaching out. I can help with your login issue.\n\n**Step 1:** Verify the email address you\'re using\n**Step 2:** Click \'Forgot Password\' and check your email\n**Step 3:** Clear your browser cache and cookies\n**Step 4:** Try using an incognito/private browser window\n**Step 5:** Contact support if issue persists\n\n✨ If these steps don\'t resolve your issue, I\'m here to help further! 😊'
+            },
+            'billing': {
+                query: 'I was charged twice for my order',
+                category: 'billing',
+                response: 'Hi there! 👋 Thank you for reaching out. I can help with your billing issue.\n\n**Step 1:** Check your transaction history in Account Settings\n**Step 2:** Verify if the charge appears twice or once\n**Step 3:** Duplicate charges are automatically reversed in 3-5 business days\n**Step 4:** Request an itemized invoice if you need details\n**Step 5:** Reply with your order number for manual investigation\n\n✨ If these steps don\'t resolve your issue, I\'m here to help further! 😊'
+            },
+            'shipping': {
+                query: 'Where is my package?',
+                category: 'shipping',
+                response: 'Hi there! 👋 Thank you for reaching out. I can help with your shipping issue.\n\n**Step 1:** Find your tracking number in your confirmation email\n**Step 2:** Check estimated delivery date on carrier website\n**Step 3:** Most packages arrive within 3-5 business days\n**Step 4:** Contact carrier directly for delivery delays\n**Step 5:** Verify your address was correct at checkout\n\n✨ If these steps don\'t resolve your issue, I\'m here to help further! 😊'
+            }
+        };
+        
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+            
+            sendBtn.disabled = true;
+            
+            // Add user message
+            addMessage(message, 'user');
+            userInput.value = '';
+            
+            // Show typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.innerHTML = '<div class="message-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
+            chatArea.appendChild(typingDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            
+            try {
+                // Try to call API
+                const response = await fetch(`${API_BASE_URL}/chat/quick`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: message })
+                });
+                
+                if (!response.ok) throw new Error('API Error');
+                
+                const data = await response.json();
+                
+                typingDiv.remove();
+                addMessage(data.response, 'bot', data.category);
+            } catch (error) {
+                console.log('API unavailable, using offline mode');
+                typingDiv.remove();
+                
+                // Use offline sample responses
+                let botResponse = offlineSamples.default;
+                const lowerMessage = message.toLowerCase();
+                
+                if (lowerMessage.includes('login') || lowerMessage.includes('password')) {
+                    botResponse = offlineSamples.login;
+                } else if (lowerMessage.includes('charge') || lowerMessage.includes('billing') || lowerMessage.includes('refund')) {
+                    botResponse = offlineSamples.billing;
+                } else if (lowerMessage.includes('ship') || lowerMessage.includes('package') || lowerMessage.includes('track')) {
+                    botResponse = offlineSamples.shipping;
+                }
+                
+                addMessage(botResponse.response, 'bot', botResponse.category);
+            }
+            
+            sendBtn.disabled = false;
+            userInput.focus();
+        }
+        
+        function addMessage(text, sender, category = '') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            let bubbleContent = text;
+            if (sender === 'bot' && category) {
+                bubbleContent += `<div class="info-tag">${category.toUpperCase()}</div>`;
+            }
+            
+            messageDiv.innerHTML = `<div class="message-bubble">${bubbleContent}</div>`;
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+        
+        // Focus input on load
+        window.addEventListener('load', () => {
+            userInput.focus();
+        });
+    </script>
+</body>
+</html>
